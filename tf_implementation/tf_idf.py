@@ -6,7 +6,7 @@ import string
 import stopwords
 import numpy as np
 from sklearn.feature_extraction.text import TfidfVectorizer
-
+import tensorflow as tf
 from tensorflow.python.framework import ops
 ops.reset_default_graph()
 
@@ -25,10 +25,11 @@ class TFIDF:
         self.target = None
         self.tfidf = None
         self.sparse_tfidf_texts = None
+        self.P = None
         self.read_file()
         self.normalize_text()
         self.tf_idf()
-        self.random_walk()
+        # self.random_walk()
 
     # Define tokenizer
     def __tokenizer(text):
@@ -59,23 +60,26 @@ class TFIDF:
 
     def tf_idf(self):
         # Create TF-IDF of texts
-        self.tfidf = TfidfVectorizer(tokenizer=tokenizer, stop_words=stopwords.get_stopwords('ru'),
+        self.tfidf = TfidfVectorizer(tokenizer=tokenizer, stop_words=[], #stopwords.get_stopwords('ru'),
                                 max_features=self.max_features)
         texts = self.texts
         self.sparse_tfidf_texts = self.tfidf.fit_transform(texts)
 
-
     def random_walk(self):
         H_w = self.sparse_tfidf_texts
-        H = np.zeros(H_w.shape)
+        H = np.zeros(H_w.shape, dtype='float64')
         cx = scipy.sparse.coo_matrix(H_w)
         for i, j, v in zip(cx.row, cx.col, cx.data):
             H[i][j] = 1. if v > 0 else 0.
-        Dv = np.diag(np.array(sum(map(np.array, H))))
-        Dvw = np.diag(np.array([sum(x) for x in H_w]))
-        W = np.diag(np.array([1 for x in H]))
-        P = np.linalg.inv(Dv) @ np.transpose(H) @ W @ np.linalg.inv(
-            Dvw) @ H_w
 
+        with tf.Session() as sess:
+            Dv = tf.diag(np.array(sum(map(np.array, H))))
+            Dvw = tf.diag(np.array([sum(x) for x in H_w.toarray()]))
+            W = tf.diag(np.array([1. for x in H]))
+            # Is equal to
+            # self.P = np.linalg.inv(Dv) @ np.transpose(H) @ W @ np.linalg.inv(Dvw) @ H_w
+            current = tf.matmul(tf.matrix_inverse(Dv), H, transpose_b=True).eval()
+            current = tf.matmul(current, W).eval()
+            current = tf.matmul(current, Dvw).eval()
+            self.P = tf.matmul(current, H_w.toarray()).eval()
 
-TFIDF()

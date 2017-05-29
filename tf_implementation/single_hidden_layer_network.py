@@ -1,14 +1,63 @@
+import os
+import csv
+from random import randint
 import numpy as np
 import tensorflow as tf
-from sklearn import datasets
 from tensorflow.python.framework import ops
+from difflib import get_close_matches
+from tf_implementation.tf_idf import TFIDF
 ops.reset_default_graph()
 
-# Mock data
-# should use P matrix indexes for real usage
-iris = datasets.load_iris()
-x_vals = np.array([x[0:3] for x in iris.data])
-y_vals = np.array([x[3] for x in iris.data])
+
+# init data
+tf_idf = TFIDF()
+cities = list()
+if os.path.isfile('kaz_cities.csv'):
+    with open('kaz_cities.csv', 'r') as temp_output_file:
+        reader = csv.reader(temp_output_file)
+        for row in reader:
+            cities.append(row[-1].lower().strip())
+tf_idf.random_walk()
+P_matrix = tf_idf.P
+vocabulary = tf_idf.tfidf.vocabulary_
+x_vals = []
+y_vals = []
+for i, doc in enumerate(tf_idf.texts):
+    splitted = doc.split()
+
+    row = list()
+    if tf_idf.target[i] > 0:
+        for j, word in enumerate(splitted):
+            close_matches = get_close_matches(word, cities, cutoff=0.9)
+            # close_matches = get_close_matches(word, cities, cutoff=0.9)
+            if close_matches:
+                for x in splitted[:j][-3:] + splitted[j + 1:][:2]:
+                    if x in vocabulary:
+                        try:
+                            row.append(P_matrix[vocabulary[x]][vocabulary[close_matches[-1]]])
+                        except KeyError:
+                            row.append(max(P_matrix[vocabulary[x]]))
+                    else:
+                        row.append(0.0)
+                break
+        if len(row) == 5:
+            x_vals.append(row)
+            y_vals.append(1.0)
+    else:
+        length = len(splitted)
+        context = 5
+        start_ind = randint(0, length - context)
+        for x in splitted[start_ind:start_ind+context]:
+            if x in vocabulary:
+                row.append(max(P_matrix[vocabulary[x]]))
+            else:
+                row.append(0.0)
+        if len(row) == 5:
+            x_vals.append(row)
+            y_vals.append(0.0)
+
+x_vals = np.array(x_vals)
+y_vals = np.array(y_vals)
 
 
 # Create graph session
@@ -38,12 +87,12 @@ x_vals_test = np.nan_to_num(normalize_cols(x_vals_test))
 batch_size = 50
 
 # Initialize placeholders
-x_data = tf.placeholder(shape=[None, 3], dtype=tf.float32)
+x_data = tf.placeholder(shape=[None, 5], dtype=tf.float32)
 y_target = tf.placeholder(shape=[None, 1], dtype=tf.float32)
 
 # Create variables for both NN layers
 hidden_layer_nodes = 10
-A1 = tf.Variable(tf.random_normal(shape=[3,hidden_layer_nodes])) # inputs -> hidden nodes
+A1 = tf.Variable(tf.random_normal(shape=[5,hidden_layer_nodes])) # inputs -> hidden nodes
 b1 = tf.Variable(tf.random_normal(shape=[hidden_layer_nodes]))   # one biases for each hidden node
 A2 = tf.Variable(tf.random_normal(shape=[hidden_layer_nodes,1])) # hidden inputs -> 1 output
 b2 = tf.Variable(tf.random_normal(shape=[1]))   # 1 bias for the output
