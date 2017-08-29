@@ -5,6 +5,7 @@ import scipy
 import string
 import stopwords
 import numpy as np
+from pymystem3 import Mystem
 from sklearn.feature_extraction.text import TfidfVectorizer
 import tensorflow as tf
 from tensorflow.python.framework import ops
@@ -47,6 +48,13 @@ class TFIDF:
         self.texts =  [x[1] for x in self.text_data]
         self.target = [x[0] for x in self.text_data]
 
+    def lemmatize_texts(self):
+        mystem = Mystem()
+        lemmatized_texts = []
+        for text in self.texts:
+            lemmatized_texts.append(''.join(mystem.lemmatize(text)).rstrip())
+        return lemmatized_texts
+
     def normalize_text(self):
         self.target = [1. if x == '1' else 0. for x in self.target]
         # Lower case
@@ -57,10 +65,12 @@ class TFIDF:
         self.texts = [''.join(c for c in x if c not in string.digits) for x in self.texts]
         # Trim extra whitespace
         self.texts = [' '.join(x.split()) for x in self.texts]
+        # Lemmatize texts with mystem
+        self.texts = self.lemmatize_texts()
 
     def tf_idf(self):
         # Create TF-IDF of texts
-        self.tfidf = TfidfVectorizer(tokenizer=tokenizer, stop_words=[], #stopwords.get_stopwords('ru'),
+        self.tfidf = TfidfVectorizer(tokenizer=tokenizer, stop_words=stopwords.get_stopwords('ru'),
                                 max_features=self.max_features)
         texts = self.texts
         self.sparse_tfidf_texts = self.tfidf.fit_transform(texts)
