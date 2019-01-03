@@ -30,6 +30,7 @@ class TFIDF:
         self.read_file()
         self.normalize_text()
         self.tf_idf()
+        
         # self.random_walk()
 
     # Define tokenizer
