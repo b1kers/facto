@@ -12,7 +12,7 @@ python:
 # Команда для установки зависимостей в окружение (при этом доступны переменные из секции "env")
 install:
 #  - pip install -q Django==$DJANGO_VERSION
-  - pip install -r requirements.txt --use-mirrors
+  - pip install -r requirements.txt
 
 # Команда для запуска тестов, в моем случае они запускаются именно так
 script: python tf_implementation/single_hidden_layer_network.py
