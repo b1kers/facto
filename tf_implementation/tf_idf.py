@@ -10,6 +10,7 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 import tensorflow as tf
 from tensorflow.python.framework import ops
 ops.reset_default_graph()
+nltk.download('punkt')
 
 
 def tokenizer(text):
