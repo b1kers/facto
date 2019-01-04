@@ -3,7 +3,7 @@ import csv
 import nltk
 import scipy
 import string
-import stopwords
+# import stopwords
 import numpy as np
 from pymystem3 import Mystem
 from sklearn.feature_extraction.text import TfidfVectorizer
@@ -71,7 +71,8 @@ class TFIDF:
 
     def tf_idf(self):
         # Create TF-IDF of texts
-        self.tfidf = TfidfVectorizer(tokenizer=tokenizer, stop_words=stopwords.get_stopwords('ru'),
+        # self.tfidf = TfidfVectorizer(tokenizer=tokenizer, stop_words=stopwords.get_stopwords('ru'),
+        self.tfidf = TfidfVectorizer(tokenizer=tokenizer,
                                 max_features=self.max_features)
         texts = self.texts
         self.sparse_tfidf_texts = self.tfidf.fit_transform(texts)
