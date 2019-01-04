@@ -5,7 +5,7 @@ import numpy as np
 import tensorflow as tf
 from tensorflow.python.framework import ops
 from difflib import get_close_matches
-from tf_implementation.tf_idf import TFIDF
+from .tf_idf import TFIDF
 ops.reset_default_graph()
 
 
