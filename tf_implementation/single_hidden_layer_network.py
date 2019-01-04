@@ -115,7 +115,7 @@ sess.run(init)
 # Training loop
 loss_vec = []
 test_loss = []
-for i in range(500):
+for i in range(5000):
     rand_index = np.random.choice(len(x_vals_train), size=batch_size)
     rand_x = x_vals_train[rand_index]
     rand_y = np.transpose([y_vals_train[rand_index]])
