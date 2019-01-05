@@ -80,8 +80,7 @@ def normalize_cols(m):
     col_min = m.min(axis=0)
     return (m-col_min) / (col_max - col_min)
 
-x_vals_train = np.nan_to_num(normalize_cols(x_vals_train))
-x_vals_test = np.nan_to_num(normalize_cols(x_vals_test))
+
 
 # Declare batch size
 batch_size = 50
@@ -115,7 +114,19 @@ sess.run(init)
 # Training loop
 loss_vec = []
 test_loss = []
-for i in range(5000):
+
+for i in range(500):
+    # Split data into train/test = 80%/20%
+    train_indices = np.random.choice(len(x_vals), round(len(x_vals)*0.8), replace=False)
+    test_indices = np.array(list(set(range(len(x_vals))) - set(train_indices)))
+    x_vals_train = x_vals[train_indices]
+    x_vals_test = x_vals[test_indices]
+    y_vals_train = y_vals[train_indices]
+    y_vals_test = y_vals[test_indices]
+
+    x_vals_train = np.nan_to_num(normalize_cols(x_vals_train))
+    x_vals_test = np.nan_to_num(normalize_cols(x_vals_test))
+    
     rand_index = np.random.choice(len(x_vals_train), size=batch_size)
     rand_x = x_vals_train[rand_index]
     rand_y = np.transpose([y_vals_train[rand_index]])
