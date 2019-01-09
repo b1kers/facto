@@ -96,6 +96,8 @@ b1 = tf.Variable(tf.random_normal(shape=[hidden_layer_nodes]))   # one biases fo
 A2 = tf.Variable(tf.random_normal(shape=[hidden_layer_nodes,1])) # hidden inputs -> 1 output
 b2 = tf.Variable(tf.random_normal(shape=[1]))   # 1 bias for the output
 
+
+# \todo move to Keras
 # Declare model operations
 hidden_output = tf.nn.relu(tf.add(tf.matmul(x_data, A1), b1))
 final_output = tf.nn.relu(tf.add(tf.matmul(hidden_output, A2), b2))
@@ -139,7 +141,6 @@ for i in range(500):
     test_loss.append(np.sqrt(test_temp_loss))
     if (i+1)%50==0:
         print('Generation: ' + str(i+1) + '. Loss = ' + str(temp_loss))
-        b = randint(0, 10)
-        y = tf.nn.softmax(tf.matmul(x, W) + b))
+        y = tf.nn.softmax(tf.matmul(x_vals_test, A1) + b2))
         classification = sess.run(tf.argmax(y, 1), feed_dict={x: x_vals_test})
         print(classification)
