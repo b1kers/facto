@@ -141,6 +141,8 @@ for i in range(500):
     test_loss.append(np.sqrt(test_temp_loss))
     if (i+1)%50==0:
         print('Generation: ' + str(i+1) + '. Loss = ' + str(temp_loss))
-        y = tf.nn.softmax(tf.matmul(x_vals_test, A1) + b2)
-        classification = sess.run(tf.argmax(y, 1), feed_dict={x: x_vals_test})
-        print(classification)
+        # y = tf.nn.softmax(tf.matmul(x_vals_test, A1) + b2)
+        # classification = sess.run(tf.argmax(y, 1), feed_dict={x: x_vals_test})
+        # print(classification)
+        predictions = my_opt.eval(feed_dict={x_data: x_vals_test})
+        print(predictions)
