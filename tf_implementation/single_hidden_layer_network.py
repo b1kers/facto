@@ -144,5 +144,5 @@ for i in range(500):
         # y = tf.nn.softmax(tf.matmul(x_vals_test, A1) + b2)
         # classification = sess.run(tf.argmax(y, 1), feed_dict={x: x_vals_test})
         # print(classification)
-        predictions = final_output.eval(feed_dict={x_data: x_vals_test})
+        predictions = final_output.eval(feed_dict={x_data: x_vals_test}, session=sess)
         print(predictions)
