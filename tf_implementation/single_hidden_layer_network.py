@@ -143,7 +143,7 @@ for optimizer in opts:
         sess.run(train_step, feed_dict={x_data: rand_x, y_target: rand_y})
 
         temp_loss = sess.run(loss, feed_dict={x_data: rand_x, y_target: rand_y})
-        loss_vec.append((temp_loss)
+        loss_vec.append(temp_loss)
 
         test_temp_loss = sess.run(loss, feed_dict={x_data: x_vals_test, y_target: np.transpose([y_vals_test])})
         test_loss.append(test_temp_loss)
