@@ -105,44 +105,51 @@ final_output = tf.nn.relu(tf.add(tf.matmul(hidden_output, A2), b2))
 # Declare loss function (MSE)
 loss = tf.reduce_mean(tf.square(y_target - final_output))
 
+
 # Declare optimizer
-my_opt = tf.train.GradientDescentOptimizer(0.005)
-train_step = my_opt.minimize(loss)
+opts = list()
+opts.append(tf.train.GradientDescentOptimizer(0.005))
+opts.append(tf.train.AdamOptimizer(0.005))
+opts.append(tf.train.RMSPropOptimizer(0.005))
 
-# Initialize variables
-init = tf.global_variables_initializer()
-sess.run(init)
 
-# Training loop
-loss_vec = []
-test_loss = []
+for optimizer in opts:
+    my_opt = optimizer
+    train_step = my_opt.minimize(loss)
 
-for i in range(500):
-    # Split data into train/test = 80%/20%
-    train_indices = np.random.choice(len(x_vals), round(len(x_vals)*0.8), replace=False)
-    test_indices = np.array(list(set(range(len(x_vals))) - set(train_indices)))
-    x_vals_train = x_vals[train_indices]
-    x_vals_test = x_vals[test_indices]
-    y_vals_train = y_vals[train_indices]
-    y_vals_test = y_vals[test_indices]
+    # Initialize variables
+    init = tf.global_variables_initializer()
+    sess.run(init)
 
-    x_vals_train = np.nan_to_num(normalize_cols(x_vals_train))
-    x_vals_test = np.nan_to_num(normalize_cols(x_vals_test))
-    
-    rand_index = np.random.choice(len(x_vals_train), size=batch_size)
-    rand_x = x_vals_train[rand_index]
-    rand_y = np.transpose([y_vals_train[rand_index]])
-    sess.run(train_step, feed_dict={x_data: rand_x, y_target: rand_y})
+    # Training loop
+    loss_vec = []
+    test_loss = []
+    for i in range(500):
+        # Split data into train/test = 80%/20%
+        train_indices = np.random.choice(len(x_vals), round(len(x_vals)*0.8), replace=False)
+        test_indices = np.array(list(set(range(len(x_vals))) - set(train_indices)))
+        x_vals_train = x_vals[train_indices]
+        x_vals_test = x_vals[test_indices]
+        y_vals_train = y_vals[train_indices]
+        y_vals_test = y_vals[test_indices]
 
-    temp_loss = sess.run(loss, feed_dict={x_data: rand_x, y_target: rand_y})
-    loss_vec.append(np.sqrt(temp_loss))
+        x_vals_train = np.nan_to_num(normalize_cols(x_vals_train))
+        x_vals_test = np.nan_to_num(normalize_cols(x_vals_test))
 
-    test_temp_loss = sess.run(loss, feed_dict={x_data: x_vals_test, y_target: np.transpose([y_vals_test])})
-    test_loss.append(np.sqrt(test_temp_loss))
-    if (i+1)%50==0:
-        print('Generation: ' + str(i+1) + '. Loss = ' + str(temp_loss))
-        # y = tf.nn.softmax(tf.matmul(x_vals_test, A1) + b2)
-        # classification = sess.run(tf.argmax(y, 1), feed_dict={x: x_vals_test})
-        # print(classification)
-        predictions = final_output.eval(feed_dict={x_data: x_vals_test}, session=sess)
-        print(predictions)
+        rand_index = np.random.choice(len(x_vals_train), size=batch_size)
+        rand_x = x_vals_train[rand_index]
+        rand_y = np.transpose([y_vals_train[rand_index]])
+        sess.run(train_step, feed_dict={x_data: rand_x, y_target: rand_y})
+
+        temp_loss = sess.run(loss, feed_dict={x_data: rand_x, y_target: rand_y})
+        loss_vec.append(np.sqrt(temp_loss))
+
+        test_temp_loss = sess.run(loss, feed_dict={x_data: x_vals_test, y_target: np.transpose([y_vals_test])})
+        test_loss.append(np.sqrt(test_temp_loss))
+        if (i+1)%50==0:
+            print('Generation: ' + str(i+1) + '. Loss = ' + str(temp_loss))
+            # y = tf.nn.softmax(tf.matmul(x_vals_test, A1) + b2)
+            # classification = sess.run(tf.argmax(y, 1), feed_dict={x: x_vals_test})
+            # print(classification)
+            predictions = final_output.eval(feed_dict={x_data: x_vals_test}, session=sess)
+            print(predictions)
