@@ -102,19 +102,17 @@ b2 = tf.Variable(tf.random_normal(shape=[1]))   # 1 bias for the output
 hidden_output = tf.nn.relu(tf.add(tf.matmul(x_data, A1), b1))
 final_output = tf.nn.relu(tf.add(tf.matmul(hidden_output, A2), b2))
 
-# Declare loss function (MAE)
-loss = tf.reduce_mean(y_target - final_output)
-
+# Declare loss function (MSE)
+loss = tf.reduce_mean(tf.square(y_target - final_output))
 
 # Declare optimizer
 opts = list()
-# opts.append(tf.train.GradientDescentOptimizer(0.005))
+opts.append(tf.train.GradientDescentOptimizer(0.005))
 opts.append(tf.train.AdamOptimizer(0.005))
 opts.append(tf.train.RMSPropOptimizer(0.005))
 
 
 for optimizer in opts:
-    print(str(optimizer))
     my_opt = optimizer
     train_step = my_opt.minimize(loss)
 
@@ -143,10 +141,10 @@ for optimizer in opts:
         sess.run(train_step, feed_dict={x_data: rand_x, y_target: rand_y})
 
         temp_loss = sess.run(loss, feed_dict={x_data: rand_x, y_target: rand_y})
-        loss_vec.append(temp_loss)
+        loss_vec.append(np.sqrt(temp_loss))
 
         test_temp_loss = sess.run(loss, feed_dict={x_data: x_vals_test, y_target: np.transpose([y_vals_test])})
-        test_loss.append(test_temp_loss)
+        test_loss.append(np.sqrt(test_temp_loss))
         if (i+1)%50==0:
             print('Generation: ' + str(i+1) + '. Loss = ' + str(temp_loss))
             # y = tf.nn.softmax(tf.matmul(x_vals_test, A1) + b2)
