@@ -108,12 +108,13 @@ loss = tf.reduce_mean(tf.square(y_target - final_output))
 
 # Declare optimizer
 opts = list()
-opts.append(tf.train.GradientDescentOptimizer(0.005))
+# opts.append(tf.train.GradientDescentOptimizer(0.005))
 opts.append(tf.train.AdamOptimizer(0.005))
 opts.append(tf.train.RMSPropOptimizer(0.005))
 
 
 for optimizer in opts:
+    print(str(optimizer))
     my_opt = optimizer
     train_step = my_opt.minimize(loss)
 
