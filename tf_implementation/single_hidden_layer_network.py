@@ -51,7 +51,7 @@ for i, doc in enumerate(tf_idf.texts):
                             features[k + '_' + str(ii)] = getattr(b, k)
                         features['target_{}'.format(ii)] = 1
                 break
-            if ii == 5:
+            if ii == 4:
                 x_vals.append(features)
                 y_vals.append(1.0)
     else:
@@ -70,7 +70,7 @@ for i, doc in enumerate(tf_idf.texts):
                 features['P' + '_' + str(ii)] = min(P_matrix[vocabulary[x]])
             else:
                 features['P' + '_' + str(ii)] = 0.0
-            if ii == 5:
+            if ii == 4:
                 x_vals.append(features)
                 y_vals.append(0.0)
 
