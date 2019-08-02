@@ -46,7 +46,7 @@ class TFIDF:
     def read_file(self, csv_file='common_train.csv'):
         if os.path.isfile(csv_file):
             self.text_data = []
-            with open(csv_file, 'r') as temp_output_file:
+            with open(csv_file, 'r', encoding="utf8") as temp_output_file:
                 reader = csv.reader(temp_output_file)
                 for row in reader:
                     self.text_data.append(row)

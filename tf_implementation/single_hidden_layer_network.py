@@ -6,8 +6,9 @@ import tensorflow as tf
 from tensorflow.python.framework import ops
 from difflib import get_close_matches
 from tf_idf import TFIDF
+import pymorphy2
 ops.reset_default_graph()
-
+from sklearn.feature_extraction import DictVectorizer
 
 # init data
 tf_idf = TFIDF()
@@ -22,41 +23,58 @@ P_matrix = tf_idf.P
 vocabulary = tf_idf.tfidf.vocabulary_
 x_vals = []
 y_vals = []
+morph = pymorphy2.MorphAnalyzer()
+dv = DictVectorizer()
 for i, doc in enumerate(tf_idf.texts):
     splitted = doc.split()
-
     row = list()
     if tf_idf.target[i] > 0:
         for j, word in enumerate(splitted):
             close_matches = get_close_matches(word, cities, cutoff=0.9)
+
             # close_matches = get_close_matches(word, cities, cutoff=0.9)
             if close_matches:
-                for x in splitted[:j][-3:] + splitted[j + 1:][:2]:
+                a = morph.parse(word)[0]
+                features = dict()
+                for ii, x in enumerate(splitted[:j][-3:] + splitted[j + 1:][:2]):
                     if x in vocabulary:
                         try:
-                            row.append(P_matrix[vocabulary[x]][vocabulary[close_matches[-1]]])
+                            features['P' + '_' + str(ii)] = P_matrix[vocabulary[x]][vocabulary[close_matches[-1]]]
                         except KeyError:
-                            row.append(max(P_matrix[vocabulary[x]]))
+                            features['P' + '_' + str(ii)] = min(P_matrix[vocabulary[x]])
                     else:
-                        row.append(0.0)
+                        features['P' + '_' + str(ii)] = 0
+                    b = morph.parse(x)[0]
+                    for k in dir(b):
+                        if k in ['count', 'index', 'normal_form', 'tag',
+                                 'score']:
+                            features[k + '_' + str(ii)] = getattr(b, k)
+                        features['target_{}'.format(ii)] = 1
                 break
-        if len(row) == 5:
-            x_vals.append(row)
-            y_vals.append(1.0)
+            if ii == 5:
+                x_vals.append(features)
+                y_vals.append(1.0)
     else:
         length = len(splitted)
         context = 5
         start_ind = randint(0, length - context)
-        for x in splitted[start_ind:start_ind+context]:
+        features = dict()
+        for ii, x in enumerate(splitted[start_ind:start_ind+context]):
+            b = morph.parse(x)[0]
+            for k in dir(b):
+                if k in ['count', 'index', 'normal_form', 'tag',
+                         'score']:
+                    features[k + '_' + str(ii)] = getattr(b, k)
+                features['target_{}'.format(ii)] = 1
             if x in vocabulary:
-                row.append(max(P_matrix[vocabulary[x]]))
+                features['P' + '_' + str(ii)] = min(P_matrix[vocabulary[x]])
             else:
-                row.append(0.0)
-        if len(row) == 5:
-            x_vals.append(row)
-            y_vals.append(0.0)
+                features['P' + '_' + str(ii)] = 0.0
+            if ii == 5:
+                x_vals.append(features)
+                y_vals.append(0.0)
 
-x_vals = np.array(x_vals)
+x_vals = dv.fit_transform(x_vals).toarray()
 y_vals = np.array(y_vals)
 
 
@@ -107,12 +125,13 @@ loss = tf.reduce_mean(tf.square(y_target - final_output))
 
 # Declare optimizer
 opts = list()
-opts.append(tf.train.GradientDescentOptimizer(0.005))
+# opts.append(tf.train.GradientDescentOptimizer(0.005))
 opts.append(tf.train.AdamOptimizer(0.005))
 opts.append(tf.train.RMSPropOptimizer(0.005))
 
 
 for optimizer in opts:
+    print(str(optimizer))
     my_opt = optimizer
     train_step = my_opt.minimize(loss)
 
