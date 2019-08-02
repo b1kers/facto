@@ -48,7 +48,8 @@ for i, doc in enumerate(tf_idf.texts):
                     for k in dir(b):
                         if k in ['count', 'index', 'normal_form', 'tag',
                                  'score']:
-                            features[k + '_' + str(ii)] = getattr(b, k)
+                            if isinstance(getattr(b, k), str) or isinstance(getattr(b, k), int) or isinstance(getattr(b, k), float):
+                                features[k + '_' + str(ii)] = getattr(b, k)
                         features['target_{}'.format(ii)] = 1
                 break
             if ii == 4:
@@ -64,7 +65,8 @@ for i, doc in enumerate(tf_idf.texts):
             for k in dir(b):
                 if k in ['count', 'index', 'normal_form', 'tag',
                          'score']:
-                    features[k + '_' + str(ii)] = getattr(b, k)
+                    if isinstance(getattr(b, k), str) or isinstance(getattr(b, k), int) or isinstance(getattr(b, k), float):
+                        features[k + '_' + str(ii)] = getattr(b, k)
                 features['target_{}'.format(ii)] = 1
             if x in vocabulary:
                 features['P' + '_' + str(ii)] = min(P_matrix[vocabulary[x]])
