@@ -1,5 +1,5 @@
 numpy==1.15.4
-nltk==3.4
+nltk==3.4.5
 pymystem3==0.2.0
 scipy==1.2.0
 scikit_learn==0.20.2
