@@ -18,7 +18,7 @@ def parse_yaml(path_to_file: str) -> Dict:
 
 def main():
     ops.reset_default_graph()
-    cfg = parse_yaml('net_config.yaml')
+    cfg = parse_yaml('tf_implementation/net_config.yaml')
     net = SingleHiddenLayerNet(**cfg)
     net.train()
 
