@@ -1,0 +1,14 @@
+# context for word
+context:
+  # words before
+  before: 3
+  # words after
+  after: 2
+# csv with list of cities
+cities_csv: kaz_cities.csv
+batch_size: 50
+hidden_layer_nodes: 10
+train_data: common_train.csv
+max_features: max_features
+stopwords_list_file: tf_implementation/stopwords.pickle
+epochs: 500

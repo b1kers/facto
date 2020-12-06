@@ -3,7 +3,7 @@ language: python
 
 # Далее, укажите версии python для которых нужно производить сборки
 python:
-  - "3.6"
+  - "3.8"
 
 # Параметры окружения
 #env:
@@ -15,4 +15,4 @@ install:
   - pip install -r requirements.txt
 
 # Команда для запуска тестов, в моем случае они запускаются именно так
-script: python tf_implementation/single_hidden_layer_network.py
+script: python tf_implementation/run.py

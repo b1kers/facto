@@ -1,9 +1,10 @@
 import csv
 import os
+import pickle
 import string
+from typing import List
 
 import nltk
-import pickle
 import numpy as np
 import scipy
 import tensorflow as tf
@@ -20,63 +21,62 @@ def tokenizer(text):
     return words
 
 
+def get_stopwords(path_to_file: str) -> List:
+    stopwords = list()
+    if os.path.isfile(path_to_file):
+        with open(path_to_file, 'rb') as f:
+            stopwords = pickle.load(f)
+    return stopwords
+
+
 class TFIDF:
 
-    def __init__(self, csv_file='common_train.csv'):
+    def __init__(self, csv_file: str, stopwords_list_file: str, max_features: int = 1000, **kwargs):
         # Start a graph session or init new
-        self.max_features = 1000
-        self.text_data = None
-        self.texts = None
-        self.target = None
-        self.tfidf = None
-        self.sparse_tfidf_texts = None
+        self.max_features = max_features
+        self.csv_file = csv_file
+        if kwargs:
+            for k, v in kwargs.items():
+                setattr(self, k, v)
+        self.tfidf = TfidfVectorizer(tokenizer=tokenizer, stop_words=get_stopwords(stopwords_list_file),
+                                     max_features=self.max_features)
         self.P = None
-        self.read_file(csv_file)
-        self.normalize_text()
-        self.tf_idf()
-        self.random_walk()
 
-    def read_file(self, csv_file='common_train.csv'):
+    @staticmethod
+    def read_train_data(csv_file):
         if os.path.isfile(csv_file):
-            self.text_data = []
+            text_data = []
             with open(csv_file, 'r', encoding="utf8") as temp_output_file:
                 reader = csv.reader(temp_output_file)
                 for row in reader:
-                    self.text_data.append(row)
-        self.texts = [x[1] for x in self.text_data]
-        self.target = [x[0] for x in self.text_data]
+                    text_data.append(row)
+        targets, texts = zip(*text_data)
+        return targets, texts
 
-    def lemmatize_texts(self):
+    @staticmethod
+    def lemmatize_texts(texts):
         mystem = Mystem()
         lemmatized_texts = []
-        for text in self.texts:
+        for text in texts:
             lemmatized_texts.append(''.join(mystem.lemmatize(text)).rstrip())
         return lemmatized_texts
 
-    def normalize_text(self):
-        self.target = [1. if x == '1' else 0. for x in self.target]
+    def __normalize_text(self, targets, texts):
+        targets = [1. if x == '1' else 0. for x in targets]
         # Lower case
-        self.texts = [x.lower() for x in self.texts]
+        texts = [x.lower() for x in texts]
         # Remove punctuation
-        self.texts = [''.join(c for c in x if c not in string.punctuation) for x in self.texts]
+        texts = [''.join(c for c in x if c not in string.punctuation) for x in texts]
         # Remove numbers
-        self.texts = [''.join(c for c in x if c not in string.digits) for x in self.texts]
+        texts = [''.join(c for c in x if c not in string.digits) for x in texts]
         # Trim extra whitespace
-        self.texts = [' '.join(x.split()) for x in self.texts]
+        texts = [' '.join(x.split()) for x in texts]
         # Lemmatize texts with mystem
-        self.texts = self.lemmatize_texts()
+        texts = TFIDF.lemmatize_texts(texts)
+        return targets, texts
 
-    def tf_idf(self):
-        # Create TF-IDF of texts
-        with open('tf_implementation/stopwords.pickle', 'rb') as f:
-            stopwords = pickle.load(f)
-        self.tfidf = TfidfVectorizer(tokenizer=tokenizer, stop_words=stopwords,
-                                     max_features=self.max_features)
-        texts = self.texts
-        self.sparse_tfidf_texts = self.tfidf.fit_transform(texts)
-
-    def random_walk(self):
-        H_w = self.sparse_tfidf_texts
+    def __random_walk(self, targets, texts):
+        H_w = self.tfidf.fit_transform(texts, targets)
         H = np.zeros(H_w.shape, dtype='float64')
         cx = scipy.sparse.coo_matrix(H_w)
         for i, j, v in zip(cx.row, cx.col, cx.data):
@@ -92,3 +92,9 @@ class TFIDF:
             current = tf.compat.v1.matmul(current, W).eval()
             current = tf.compat.v1.matmul(current, Dvw).eval()
             self.P = tf.compat.v1.matmul(current, H_w.toarray()).eval()
+
+    def fit(self):
+        targets, texts = TFIDF.read_train_data(self.csv_file)
+        targets, texts = self.__normalize_text(targets, texts)
+        self.__random_walk(targets, texts)
+        return targets, texts
