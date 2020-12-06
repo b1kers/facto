@@ -83,12 +83,12 @@ class TFIDF:
             H[i][j] = 1. if v > 0 else 0.
 
         with tf.compat.v1.Session() as sess:
-            Dv = tf.diag(np.array(sum(map(np.array, H))))
-            Dvw = tf.diag(np.array([sum(x) for x in H_w.toarray()]))
-            W = tf.diag(np.array([1. for x in H]))
+            Dv = tf.compat.v1.diag(np.array(sum(map(np.array, H))))
+            Dvw = tf.compat.v1.diag(np.array([sum(x) for x in H_w.toarray()]))
+            W = tf.compat.v1.diag(np.array([1. for x in H]))
             # Lines below are equal to
             # self.P = np.linalg.inv(Dv) @ np.transpose(H) @ W @ np.linalg.inv(Dvw) @ H_w
-            current = tf.matmul(tf.matrix_inverse(Dv), H, transpose_b=True).eval()
-            current = tf.matmul(current, W).eval()
-            current = tf.matmul(current, Dvw).eval()
-            self.P = tf.matmul(current, H_w.toarray()).eval()
+            current = tf.compat.v1.matmul(tf.compat.v1.matrix_inverse(Dv), H, transpose_b=True).eval()
+            current = tf.compat.v1.matmul(current, W).eval()
+            current = tf.compat.v1.matmul(current, Dvw).eval()
+            self.P = tf.compat.v1.matmul(current, H_w.toarray()).eval()
