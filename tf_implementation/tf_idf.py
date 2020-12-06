@@ -3,7 +3,7 @@ import os
 import string
 
 import nltk
-import stopwords
+import pickle
 import numpy as np
 import scipy
 import tensorflow as tf
@@ -68,7 +68,9 @@ class TFIDF:
 
     def tf_idf(self):
         # Create TF-IDF of texts
-        self.tfidf = TfidfVectorizer(tokenizer=tokenizer, stop_words=stopwords.get_stopwords('ru'),
+        with open('stopwords.pickle', 'rb') as f:
+            stopwords = pickle.load(f)
+        self.tfidf = TfidfVectorizer(tokenizer=tokenizer, stop_words=stopwords,
                                      max_features=self.max_features)
         texts = self.texts
         self.sparse_tfidf_texts = self.tfidf.fit_transform(texts)
