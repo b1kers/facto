@@ -50,8 +50,8 @@ class TFIDF:
                 reader = csv.reader(temp_output_file)
                 for row in reader:
                     text_data.append(row)
-        targets, texts = zip(*text_data)
-        return targets, texts
+            targets, texts = zip(*text_data)
+            return targets, texts
 
     @staticmethod
     def lemmatize_texts(texts):
