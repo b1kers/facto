@@ -82,7 +82,7 @@ class TFIDF:
         for i, j, v in zip(cx.row, cx.col, cx.data):
             H[i][j] = 1. if v > 0 else 0.
 
-        with tf.Session() as sess:
+        with tf.compat.v1.Session() as sess:
             Dv = tf.diag(np.array(sum(map(np.array, H))))
             Dvw = tf.diag(np.array([sum(x) for x in H_w.toarray()]))
             W = tf.diag(np.array([1. for x in H]))
