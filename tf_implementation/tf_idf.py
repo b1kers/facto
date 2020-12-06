@@ -68,7 +68,7 @@ class TFIDF:
 
     def tf_idf(self):
         # Create TF-IDF of texts
-        with open('stopwords.pickle', 'rb') as f:
+        with open('tf_implementation/stopwords.pickle', 'rb') as f:
             stopwords = pickle.load(f)
         self.tfidf = TfidfVectorizer(tokenizer=tokenizer, stop_words=stopwords,
                                      max_features=self.max_features)
