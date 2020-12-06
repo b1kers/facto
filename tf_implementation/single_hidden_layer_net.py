@@ -9,7 +9,7 @@ import tensorflow as tf
 
 from sklearn.feature_extraction import DictVectorizer
 from sklearn.model_selection import train_test_split
-from tf_implementation.tf_idf import TFIDF
+from tf_idf import TFIDF
 
 
 def get_first(collection: List):

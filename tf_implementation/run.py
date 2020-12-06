@@ -3,7 +3,7 @@ import yaml
 from typing import Dict
 
 from tensorflow.python.framework import ops
-from tf_implementation.single_hidden_layer_net import SingleHiddenLayerNet
+from single_hidden_layer_net import SingleHiddenLayerNet
 
 
 def parse_yaml(path_to_file: str) -> Dict:
