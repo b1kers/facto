@@ -111,8 +111,7 @@ class SingleHiddenLayerNet:
                 setattr(self, k, v)
         # all the above values should be defined
         # to avoid pylint warning
-        self.data = SingleHiddenLayerNetData(self.cities_csv, self.train_data,
-                                             self.stopwords_list_file, self.cutoff, self.context)
+        self.data = SingleHiddenLayerNetData(**kwargs)
         x_vals, y_vals = self.data.fit_transform()
         self.x_vals = self.data.dv.fit_transform(x_vals).toarray()
         self.y_vals = np.array(y_vals)
