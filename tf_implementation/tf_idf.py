@@ -38,7 +38,8 @@ class TFIDF:
         if kwargs:
             for k, v in kwargs.items():
                 setattr(self, k, v)
-        self.tfidf = TfidfVectorizer(tokenizer=tokenizer, stop_words=get_stopwords(stopwords_list_file),
+        self.tfidf = TfidfVectorizer(tokenizer=tokenizer,
+                                     stop_words=get_stopwords(stopwords_list_file),
                                      max_features=self.max_features)
         self.P = None
 
@@ -61,7 +62,8 @@ class TFIDF:
             lemmatized_texts.append(''.join(mystem.lemmatize(text)).rstrip())
         return lemmatized_texts
 
-    def __normalize_text(self, targets, texts):
+    @staticmethod
+    def __normalize_text(targets, texts):
         targets = [1. if x == '1' else 0. for x in targets]
         # Lower case
         texts = [x.lower() for x in texts]
@@ -82,19 +84,20 @@ class TFIDF:
         for i, j, v in zip(cx.row, cx.col, cx.data):
             H[i][j] = 1. if v > 0 else 0.
 
-        with tf.compat.v1.Session() as sess:
+        with tf.compat.v1.Session():
             Dv = tf.compat.v1.diag(np.array(sum(map(np.array, H))))
             Dvw = tf.compat.v1.diag(np.array([sum(x) for x in H_w.toarray()]))
             W = tf.compat.v1.diag(np.array([1. for x in H]))
             # Lines below are equal to
             # self.P = np.linalg.inv(Dv) @ np.transpose(H) @ W @ np.linalg.inv(Dvw) @ H_w
-            current = tf.compat.v1.matmul(tf.compat.v1.matrix_inverse(Dv), H, transpose_b=True).eval()
+            current = tf.compat.v1.matmul(tf.compat.v1.matrix_inverse(Dv), H,
+                                          transpose_b=True).eval()
             current = tf.compat.v1.matmul(current, W).eval()
             current = tf.compat.v1.matmul(current, Dvw).eval()
             self.P = tf.compat.v1.matmul(current, H_w.toarray()).eval()
 
     def fit(self):
         targets, texts = TFIDF.read_train_data(self.csv_file)
-        targets, texts = self.__normalize_text(targets, texts)
+        targets, texts = TFIDF.__normalize_text(targets, texts)
         self.__random_walk(targets, texts)
         return targets, texts
