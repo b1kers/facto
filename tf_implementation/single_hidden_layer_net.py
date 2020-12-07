@@ -1,12 +1,11 @@
 import csv
 import os
 from difflib import get_close_matches
-from typing import List, Dict
+from typing import List
 
 import numpy as np
 import pymorphy2
 import tensorflow as tf
-
 from sklearn.feature_extraction import DictVectorizer
 from sklearn.model_selection import train_test_split
 from tf_idf import TFIDF
@@ -28,16 +27,12 @@ def normalize_cols(m):
 
 class SingleHiddenLayerNetData:
 
-    def __init__(self, cities_csv: str = None, common_csv: str = None,
-                 stopwords_list_file: str = None, cutoff: float = 0.8,
-                 context: dict = None, **kwargs):
-        self.tf_idf = TFIDF(common_csv, stopwords_list_file)
-        self.cutoff = cutoff
-        self.context = context
+    def __init__(self, **kwargs):
         if kwargs:
             for k, v in kwargs.items():
                 setattr(self, k, v)
-        self.cities = SingleHiddenLayerNetData.get_cities(cities_csv)
+        self.tf_idf = TFIDF(self.common_csv, self.stopwords_list_file)
+        self.cities = SingleHiddenLayerNetData.get_cities(self.cities_csv)
         self.targets, self.texts = self.tf_idf.fit()
         self.P_matrix = self.tf_idf.P
         self.vocabulary = self.tf_idf.tfidf.vocabulary_
@@ -76,11 +71,11 @@ class SingleHiddenLayerNetData:
                                 feature_value = feature_value_range[self.vocabulary[closest_match]]
                             except KeyError:
                                 pass
-                    feature_value = max(feature_value, min(feature_value_range))
+                        feature_value = max(feature_value, min(feature_value_range))
                     features[feature_key] = feature_value
-                if context_idx == sum(self.context.values()) - 1:
-                    x_values.append(features)
-                    y_values.append(float(target_label))
+                    if context_idx == sum(self.context.values()) - 1:
+                        x_values.append(features)
+                        y_values.append(float(target_label))
         return x_values, y_values
 
     @staticmethod
@@ -103,6 +98,7 @@ class SingleHiddenLayerNetData:
 class SingleHiddenLayerNet:
 
     def __init__(self, **kwargs):
+        self.cutoff = 0
         self.context = None
         self.cities_csv = None
         self.batch_size = None
@@ -116,7 +112,7 @@ class SingleHiddenLayerNet:
         # all the above values should be defined
         # to avoid pylint warning
         self.data = SingleHiddenLayerNetData(self.cities_csv, self.train_data,
-                                             self.stopwords_list_file)
+                                             self.stopwords_list_file, self.cutoff, self.context)
         x_vals, y_vals = self.data.fit_transform()
         self.x_vals = self.data.dv.fit_transform(x_vals).toarray()
         self.y_vals = np.array(y_vals)
