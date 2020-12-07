@@ -28,9 +28,12 @@ def normalize_cols(m):
 
 class SingleHiddenLayerNetData:
 
-    def __init__(self, cities_csv: str, common_csv: str, stopwords_list_file: str, **kwargs):
+    def __init__(self, cities_csv: str = None, common_csv: str = None,
+                 stopwords_list_file: str = None, cutoff: float = 0.8,
+                 context: dict = None, **kwargs):
         self.tf_idf = TFIDF(common_csv, stopwords_list_file)
-        self.context = None
+        self.cutoff = cutoff
+        self.context = context
         if kwargs:
             for k, v in kwargs.items():
                 setattr(self, k, v)
@@ -40,10 +43,9 @@ class SingleHiddenLayerNetData:
         self.vocabulary = self.tf_idf.tfidf.vocabulary_
         self.morph = pymorphy2.MorphAnalyzer()
         self.dv = DictVectorizer()
-        self.cutoff = 0.9
 
     def __get_morpho_features(self, word_in_context: str, context_idx: int):
-        word_data = self.morph.parse(word_in_context)[0]
+        word_data = get_first(self.morph.parse(word_in_context))
         morpho_features = dict()
         for word_feature in dir(word_data):
             if word_feature in ['count', 'index', 'normal_form', 'tag', 'score']:
@@ -59,11 +61,12 @@ class SingleHiddenLayerNetData:
             target_label = self.targets[idx]
             for inner_idx, word in enumerate(splitted_docs):
                 features = dict()
-                word_context = splitted_docs[:inner_idx][-3:] + splitted_docs[inner_idx + 1:][:2]
+                word_context = splitted_docs[:inner_idx][-self.context['before']:]
+                word_context += splitted_docs[inner_idx + 1:][:self.context['after']]
                 for context_idx, word_in_context in enumerate(word_context):
                     feature_value = 0
                     feature_key = f'P_{context_idx}'
-                    features.update(self.__get_morpho_features(word_context, context_idx))
+                    features.update(self.__get_morpho_features(word_in_context, context_idx))
                     if word_in_context in self.vocabulary:
                         feature_value_range = self.P_matrix[self.vocabulary[word_in_context]]
                         if target_label:
@@ -75,7 +78,7 @@ class SingleHiddenLayerNetData:
                                 pass
                     feature_value = max(feature_value, min(feature_value_range))
                     features[feature_key] = feature_value
-                if context_idx == 4:
+                if context_idx == sum(self.context.values()) - 1:
                     x_values.append(features)
                     y_values.append(float(target_label))
         return x_values, y_values
@@ -110,10 +113,10 @@ class SingleHiddenLayerNet:
         if kwargs:
             for k, v in kwargs.items():
                 setattr(self, k, v)
-        self.data = SingleHiddenLayerNetData(self.cities_csv, self.train_data,
-                                             self.stopwords_list_file)
         # all the above values should be defined
         # to avoid pylint warning
+        self.data = SingleHiddenLayerNetData(self.cities_csv, self.train_data,
+                                             self.stopwords_list_file)
         x_vals, y_vals = self.data.fit_transform()
         self.x_vals = self.data.dv.fit_transform(x_vals).toarray()
         self.y_vals = np.array(y_vals)
@@ -154,7 +157,7 @@ class SingleHiddenLayerNet:
             my_opt = optimizer
             train_step = my_opt.minimize(self.loss)
             # Initialize variables
-            init = tf.global_variables_initializer()
+            init = tf.compat.v1.global_variables_initializer()
             self.sess.run(init)
             # Training loop
             loss_vec = []

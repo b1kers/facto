@@ -6,9 +6,11 @@ context:
   after: 2
 # csv with list of cities
 cities_csv: kaz_cities.csv
+# threshold of similarity
+cutoff: 0.9
 batch_size: 50
 hidden_layer_nodes: 10
 train_data: common_train.csv
-max_features: max_features
+max_features: 1000
 stopwords_list_file: tf_implementation/stopwords.pickle
 epochs: 500
