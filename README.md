@@ -1,2 +1,2 @@
 # facto
-Simple neural network for extracting facts
+Simple neural network for extracting facts.
